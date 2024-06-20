@@ -47,18 +47,17 @@ jobs:
   code_quality:
     name: 🎖Code Quality️
     runs-on: ubuntu-latest
-    container: "golangci/golangci-lint:v1.57.2"
     steps:
-      - name: Set up Go v1.22
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.22'
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
-      - name: Get dependencies
-        run: |
-          go get -v -t -d ./...
-          go mod tidy
-      - name: GolangCI-Lint
-        run: |
-          GOFLAGS=-buildvcs=false golangci-lint run -v
+        - name: Install Go 1.21
+          uses: actions/setup-go@v4
+          with:
+            go-version: 1.21
+
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            version: v1.57.2
+            args: --timeout=9m
