@@ -9,5 +9,7 @@ func main() {
 		return "kops cli version " + version, nil
 	}, gofr.AddDescription("displays the installed kops version"))
 
+	app.SubCommand("deploy", Deploy)
+
 	app.Run()
 }
