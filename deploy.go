@@ -57,7 +57,8 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 		tag = "latest"
 	}
 
-	cmd := exec.Command("docker", "build", "-t"+deploy.ServiceName+":"+tag, ".")
+	image := deploy.ServiceName + ":" + tag
+	cmd := exec.Command("docker", "build", "-t"+image, ".")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -68,7 +69,7 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 	// check what cloud provider is
 	switch deploy.CloudProvider {
 	default:
-		err = deployGCP(&deploy, "")
+		err = deployGCP(&deploy, image)
 		if err != nil {
 			return nil, err
 		}

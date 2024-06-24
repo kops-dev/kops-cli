@@ -37,20 +37,78 @@ func deployGCP(gcp *models.Deploy, imageName string) error {
 	}
 
 	// Authenticate using gcloud
-	cmd := exec.Command("gcloud", "auth", "activate-service-account", "--key-file=./application_creds.json")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println(string(out))
+	cmd := replaceInputOutput(
+		exec.Command("gcloud", "auth", "activate-service-account", "--key-file=./application_creds.json", "--project="+key.ProjectId),
+	)
 
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error executing command:", err)
 		return err
 	}
 
-	fmt.Println(string(out))
-
 	defer func() {
-		fmt.Println("removing application credentials")
 		os.Remove("application_creds.json")
 	}()
 
+	cmd = replaceInputOutput(exec.Command("gcloud", "auth", "configure-docker", gcp.Region+"-docker.pkg.dev"))
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("error configuring docker registry")
+		return err
+	}
+
+	imageLoc := gcp.Region + "-docker.pkg.dev" + "/" + key.ProjectId + "/" + gcp.DockerRegistry + "/" + imageName
+
+	cmd = replaceInputOutput(
+		exec.Command("docker", "tag", imageName, imageLoc),
+	)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	cmd = replaceInputOutput(
+		exec.Command("docker", "push", imageLoc),
+	)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	cmd = exec.Command("gcloud", "container", "clusters", "get-credentials", gcp.ClusterName, "--region="+gcp.Region, "--project="+key.ProjectId)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	cmd = exec.Command("kubectl", "set", "image", "deployment/"+gcp.ServiceName,
+		gcp.ServiceName+"="+imageLoc,
+		"--namespace", gcp.Namespace)
+
+	fmt.Println("kubectl", "set", "image", "deployment/"+gcp.ServiceName,
+		gcp.ServiceName+"="+imageLoc,
+		"--namespace", gcp.Namespace)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println("Error executing command:", err)
+		fmt.Println("Detailed error output:", string(output))
+		return err
+	}
+
 	return nil
+}
+
+// replaceInputOutput attaches the
+func replaceInputOutput(cmd *exec.Cmd, files ...*os.File) *exec.Cmd {
+	if len(files) > 0 {
+		cmd.Stdout = files[0]
+	}
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	return cmd
 }
