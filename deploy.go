@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gofr.dev/pkg/gofr"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 
+	"gofr.dev/pkg/gofr"
 	"kops.dev/internal/models"
 )
 
@@ -19,7 +18,8 @@ const (
 )
 
 var (
-	buildFlags = fmt.Sprintf("CGO_ENABLED=0 GOOS=%s GOARCH=%s", runtime.GOOS, runtime.GOARCH)
+	errDepKeyNotProvided          = errors.New("KOPS_DEPLOYMENT_KEY not provided, please download the key form https://kops.dev")
+	errCloudProviderNotRecognized = errors.New("cloud provider in KOPS_DEPLOYMENT_KEY is not provided or supported")
 )
 
 func Deploy(ctx *gofr.Context) (interface{}, error) {
@@ -27,7 +27,7 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 
 	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
 	if keyFile == "" {
-		return nil, errors.New("KOPS_DEPLOYMENT_KEY not provided, please download the key form https://kops.dev")
+		return nil, errDepKeyNotProvided
 	}
 
 	f, err := os.ReadFile(filepath.Clean(keyFile))
@@ -57,32 +57,35 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 		tag = "latest"
 	}
 
-	image := deploy.ServiceName + ":" + tag
-	cmd := exec.Command("docker", "build", "-t"+image, ".")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	image := filepath.Clean(deploy.ServiceName + ":" + tag)
 
-	if err := cmd.Run(); err != nil {
+	err = replaceInputOutput(exec.Command("docker", "build", "-t", image, ".")).Run()
+	if err != nil {
 		return nil, err
 	}
 
 	// check what cloud provider is
 	switch deploy.CloudProvider {
-	default:
+	case gcp:
 		err = deployGCP(&deploy, image)
 		if err != nil {
 			return nil, err
 		}
 
 		return "Successfully deployed!", nil
+	default:
+		return nil, errCloudProviderNotRecognized
 	}
 }
 
 func buildBinary() error {
-	cmd := exec.Command("sh", "-c", buildFlags+" go build -o "+executableName+" .")
-	output, err := cmd.CombinedOutput()
+	fmt.Println("Creating binary for the project")
+
+	output, err := exec.Command("sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "+executableName+" .").CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error executing command: %s, %v", output, err)
+		fmt.Println("error occurred while creating binary!", output)
+
+		return err
 	}
 
 	fmt.Println("Binary created successfully")
@@ -91,12 +94,12 @@ func buildBinary() error {
 }
 
 func createGoDockerFile() error {
-	content := fmt.Sprintf(`FROM alpine:latest
+	content := `FROM alpine:latest
 RUN apk add --no-cache tzdata ca-certificates
 COPY main ./main
 RUN chmod +x /main
 EXPOSE 8000
-CMD ["/main"]`)
+CMD ["/main"]`
 
 	fi, _ := os.Stat("Dockerfile")
 	if fi != nil {
@@ -116,5 +119,6 @@ CMD ["/main"]`)
 	}
 
 	fmt.Println("Dockerfile created successfully!")
+
 	return nil
 }
