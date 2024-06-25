@@ -1,6 +1,6 @@
 module kops.dev
 
-go 1.21
+go 1.22
 
 require gofr.dev v1.10.0
 
