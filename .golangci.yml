@@ -8,7 +8,7 @@ linters-settings:
     statements: 50
   gci:
     sections:
-      - prefix(gofr.dev)
+      - prefix(kops.dev)
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -28,7 +28,7 @@ linters-settings:
   gocyclo:
     min-complexity: 10
   goimports:
-    local-prefixes: github.com/golangci/golangci-lint
+    local-prefixes: kops.dev
   golint:
     min-confidence: 0
   gomnd:
@@ -40,11 +40,6 @@ linters-settings:
   govet:
     enable:
       - shadow
-    settings:
-      printf:
-        funcs:
-          - (gofr.dev/pkg/gofr/Logger).Logf
-          - (gofr.dev/pkg/gofr/Logger).Errorf
   lll:
     line-length: 140
   maligned:
@@ -108,7 +103,7 @@ linters:
 
 
 service:
-  golangci-lint-version: 1.57.x
+  golangci-lint-version: 1.58.x
 
 issues:
   # exclude-use-default: false
