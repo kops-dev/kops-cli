@@ -13,7 +13,7 @@ import (
 const filePerm = 0644
 
 var (
-	errInvalidKey = errors.New("")
+	errInvalidKey = errors.New("key provided is not a valid service-account key")
 )
 
 func deployGCP(gcp *models.Deploy, imageName string) error {
@@ -31,6 +31,7 @@ func deployGCP(gcp *models.Deploy, imageName string) error {
 		return err
 	}
 
+	//nolint:gosec // this would not be an issue since the user input is part of secret
 	err = replaceInputOutput(exec.Command("gcloud", "auth",
 		"configure-docker", gcp.Region+"-docker.pkg.dev")).Run()
 	if err != nil {
@@ -39,7 +40,6 @@ func deployGCP(gcp *models.Deploy, imageName string) error {
 	}
 
 	imageLoc := gcp.Region + "-docker.pkg.dev" + "/" + key.ProjectID + "/" + gcp.DockerRegistry + "/" + imageName
-	fmt.Println(imageLoc)
 
 	err = replaceInputOutput(
 		exec.Command("docker", "tag", imageName, imageLoc),
@@ -55,12 +55,14 @@ func deployGCP(gcp *models.Deploy, imageName string) error {
 		return err
 	}
 
+	//nolint:gosec // this would not be an issue since the user input is part of secret
 	err = replaceInputOutput(exec.Command("gcloud", "container", "clusters",
 		"get-credentials", gcp.ClusterName, "--region="+gcp.Region, "--project="+key.ProjectID)).Run()
 	if err != nil {
 		return err
 	}
 
+	//nolint:gosec // this would not be an issue since the user input is part of secret
 	err = replaceInputOutput(exec.Command("kubectl", "set", "image", "deployment/"+gcp.ServiceName,
 		gcp.ServiceName+"="+imageLoc,
 		"--namespace", gcp.Namespace)).Run()
@@ -105,7 +107,8 @@ func authenticateCLI(jsonBytes []byte, info *models.GCPInfo) error {
 		return err
 	}
 
-	// Authenticate using gcloud
+	// authenticate gcloud cli with the newly created credentials, these are part of the KOPS_DEPLOYMENT_KEY
+	//nolint:gosec // this would not be an issue since the user input is part of secret
 	err = replaceInputOutput(
 		exec.Command("gcloud", "auth",
 			"activate-service-account", "--key-file=./application_creds.json", "--project="+key.ProjectID)).Run()
