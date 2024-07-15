@@ -6,6 +6,7 @@ import (
 	"kops.dev/internal/templates"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"gofr.dev/pkg/gofr"
 )
@@ -45,13 +46,15 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 			port = "8000"
 		}
 
-		createDockerFile(ctx, lang)
+		if err := createDockerFile(ctx, lang, port); err != nil {
+			return nil, err
+		}
 	}
 
 	return "Successful", nil
 }
 
-func createDockerFile(ctx *gofr.Context, lang string) error {
+func createDockerFile(ctx *gofr.Context, lang, port string) error {
 	content := templates.TmplMap[lang]
 	if content == "" {
 		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet, reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
@@ -69,11 +72,17 @@ func createDockerFile(ctx *gofr.Context, lang string) error {
 
 	defer file.Close()
 
-	if _, err = file.WriteString(content); err != nil {
-		ctx.Logger.Error("error while creating DockerFile", err)
+	t := template.New(lang)
+	temp, err := t.Parse(content)
+	if err != nil {
+		return err
+	}
+
+	if er := temp.Execute(file, port); er != nil {
+		ctx.Logger.Error("error while creating DockerFile", er)
 		fmt.Println("unable to create the DockerFile, please check permissions for creating files in the directory")
 
-		return err
+		return er
 	}
 
 	return nil

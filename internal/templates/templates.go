@@ -5,7 +5,7 @@ const (
 RUN apk add --no-cache tzdata ca-certificates
 COPY main ./main
 RUN chmod +x /main
-EXPOSE {{ port }}
+EXPOSE {{ . }}
 CMD ["/main"]`
 
 	js = `FROM node:10-alpine
@@ -17,7 +17,7 @@ USER node
 RUN npm install
 COPY --chown=node:node . .
 
-EXPOSE {{ port }}
+EXPOSE {{ . }}
 CMD [ "node", "app.js" ]`
 
 	java = `FROM openjdk
