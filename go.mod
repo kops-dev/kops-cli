@@ -2,7 +2,10 @@ module kops.dev
 
 go 1.22
 
-require gofr.dev v1.10.0
+require (
+	github.com/robherley/guesslang-go v0.1.0
+	gofr.dev v1.10.0
+)
 
 require (
 	cloud.google.com/go v0.114.0 // indirect
@@ -21,6 +24,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/galeone/tensorflow/tensorflow/go v0.0.0-20221023090153-6b7fa0680c3e // indirect
+	github.com/galeone/tfgo v0.0.0-20230214145115-56cedbc50978 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect

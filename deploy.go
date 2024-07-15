@@ -1,111 +1,65 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"kops.dev/internal/templates"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"gofr.dev/pkg/gofr"
-
-	"kops.dev/internal/models"
-)
-
-const (
-	gcp            = "GCP"
-	executableName = "main"
 )
 
 var (
-	errDepKeyNotProvided          = errors.New("KOPS_DEPLOYMENT_KEY not provided, please download the key form https://kops.dev")
-	errCloudProviderNotRecognized = errors.New("cloud provider in KOPS_DEPLOYMENT_KEY is not provided or supported")
+	errDepKeyNotProvided    = errors.New("KOPS_DEPLOYMENT_KEY not provided, please download the key form https://kops.dev")
+	errLanguageNotProvided  = errors.New("unable to create DockerFile as project programming language not provided. Please Provide a programming language using -lang=<language>")
+	errLanguageNotSupported = errors.New("creating DockerFile for provided language is not supported yet")
 )
 
 func Deploy(ctx *gofr.Context) (interface{}, error) {
-	var deploy models.Deploy
-
 	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
 	if keyFile == "" {
 		return nil, errDepKeyNotProvided
 	}
 
-	f, err := os.ReadFile(filepath.Clean(keyFile))
+	// letting this key file to be used later
+	_, err := os.ReadFile(filepath.Clean(keyFile))
 	if err != nil {
 		return nil, err
 	}
-
-	err = json.Unmarshal(f, &deploy)
-	if err != nil {
-		return nil, err
-	}
-
-	// build binaries for the current working directory
-	err = buildBinary()
-	if err != nil {
-		return nil, err
-	}
-
-	// create and build docker image
-	err = createGoDockerFile()
-	if err != nil {
-		return nil, err
-	}
-
-	tag := ctx.Param("tag")
-	if tag == "" {
-		tag = "latest"
-	}
-
-	image := filepath.Clean(deploy.ServiceName + ":" + tag)
-
-	err = replaceInputOutput(exec.Command("docker", "build", "-t", image, ".")).Run()
-	if err != nil {
-		return nil, err
-	}
-
-	// check what cloud provider is
-	switch deploy.CloudProvider {
-	case gcp:
-		err = deployGCP(&deploy, image)
-		if err != nil {
-			return nil, err
-		}
-
-		return "Successfully deployed!", nil
-	default:
-		return nil, errCloudProviderNotRecognized
-	}
-}
-
-func buildBinary() error {
-	fmt.Println("Creating binary for the project")
-
-	output, err := exec.Command("sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "+executableName+" .").CombinedOutput()
-	if err != nil {
-		fmt.Println("error occurred while creating binary!", output)
-
-		return err
-	}
-
-	fmt.Println("Binary created successfully")
-
-	return nil
-}
-
-func createGoDockerFile() error {
-	content := `FROM alpine:latest
-RUN apk add --no-cache tzdata ca-certificates
-COPY main ./main
-RUN chmod +x /main
-EXPOSE 8000
-CMD ["/main"]`
 
 	fi, _ := os.Stat("Dockerfile")
 	if fi != nil {
 		fmt.Println("Dockerfile present, using already created dockerfile")
-		return nil
+	} else {
+		// removing the cloud-specific logic from cli to hosted service
+		lang := ctx.Param("lang")
+		if lang == "" {
+			ctx.Logger.Errorf("%v", errLanguageNotProvided)
+
+			return nil, errLanguageNotProvided
+		}
+
+		port := ctx.Param("p")
+		if port == "" {
+			port = "8000"
+		}
+
+		createDockerFile(ctx, lang)
+	}
+
+	return "Successful", nil
+}
+
+func createDockerFile(ctx *gofr.Context, lang string) error {
+	content := templates.TmplMap[lang]
+	if content == "" {
+		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet, reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
+
+		fmt.Printf("creating DockerFile for %s is not supported yet, reach us at https://github.com/kops-dev/kops-cli/issues to know more\n", lang)
+		fmt.Println("you can create your own DockerFile and run the kops-cli again.")
+
+		return errLanguageNotSupported
 	}
 
 	file, err := os.Create("Dockerfile")
@@ -116,10 +70,11 @@ CMD ["/main"]`
 	defer file.Close()
 
 	if _, err = file.WriteString(content); err != nil {
+		ctx.Logger.Error("error while creating DockerFile", err)
+		fmt.Println("unable to create the DockerFile, please check permissions for creating files in the directory")
+
 		return err
 	}
-
-	fmt.Println("Dockerfile created successfully!")
 
 	return nil
 }
