@@ -48,19 +48,14 @@ jobs:
           echo $codeCoverage:
 
   code_quality:
-    name: 🎖Code Quality️
+    name: Code Quality🎖️
     runs-on: ubuntu-latest
+    container: "golangci/golangci-lint:v1.59.1"
     steps:
-      - name: Checkout code
+      - name: Check out code into the Go module directory
         uses: actions/checkout@v4
-
-      - name: Install Go 1.22
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.59.2
-          args: --timeout=9m
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+      - name: GolangCI-Lint
+        run: |
+          golangci-lint run --timeout 9m0s
