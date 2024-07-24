@@ -51,6 +51,9 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 		}
 	}
 
+	// TODO: build and push the docker image to the Kops API
+	// Also need to figure out the contract for the API
+
 	return "Successful", nil
 }
 
