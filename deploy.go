@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"kops.dev/internal/templates"
 	"os"
 	"path/filepath"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
+
+	"kops.dev/internal/templates"
 )
 
 var (
