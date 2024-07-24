@@ -16,14 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.21', '1.22']
+        go-version: ['1.22', '1.21']
 
     steps:
       - name: Checkout code into go module directory
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
         id: Go
@@ -31,6 +33,7 @@ jobs:
       - name: Get dependencies
         run: |
           go mod download
+          go mod tidy
 
       - name: Test
         run: |
@@ -59,5 +62,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.57.2
+          version: v1.59.1
           args: --timeout=9m
