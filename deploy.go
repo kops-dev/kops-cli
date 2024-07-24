@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
@@ -13,8 +14,10 @@ import (
 )
 
 var (
-	errDepKeyNotProvided    = errors.New("KOPS_DEPLOYMENT_KEY not provided, please download the key form https://kops.dev")
-	errLanguageNotProvided  = errors.New("unable to create DockerFile as project programming language not provided. Please Provide a programming language using -lang=<language>")
+	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
+		"please download the key form https://kops.dev")
+	errLanguageNotProvided = errors.New("unable to create DockerFile as project " +
+		"programming language not provided. Please Provide a programming language using -lang=<language>")
 	errLanguageNotSupported = errors.New("creating DockerFile for provided language is not supported yet")
 )
 
@@ -59,11 +62,22 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 }
 
 func createDockerFile(ctx *gofr.Context, lang, port string) error {
-	content := templates.TmplMap[lang]
-	if content == "" {
-		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet, reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
+	var content string
 
-		fmt.Printf("creating DockerFile for %s is not supported yet, reach us at https://github.com/kops-dev/kops-cli/issues to know more\n", lang)
+	// get the template content for dockerFile based on the language
+	switch strings.ToLower(lang) {
+	case "go":
+		content = templates.Golang
+	case "java":
+		content = templates.Java
+	case "js":
+		content = templates.Js
+	default:
+		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet,"+
+			" reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
+
+		fmt.Printf("creating DockerFile for %s is not supported yet, "+
+			"reach us at https://github.com/kops-dev/kops-cli/issues to know more\n", lang)
 		fmt.Println("you can create your own DockerFile and run the kops-cli again.")
 
 		return errLanguageNotSupported
@@ -77,6 +91,7 @@ func createDockerFile(ctx *gofr.Context, lang, port string) error {
 	defer file.Close()
 
 	t := template.New(lang)
+
 	temp, err := t.Parse(content)
 	if err != nil {
 		return err

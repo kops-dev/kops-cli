@@ -1,14 +1,14 @@
 package templates
 
 const (
-	golang = `FROM alpine:latest
+	Golang = `FROM alpine:latest
 RUN apk add --no-cache tzdata ca-certificates
 COPY main ./main
 RUN chmod +x /main
 EXPOSE {{ . }}
 CMD ["/main"]`
 
-	js = `FROM node:10-alpine
+	Js = `FROM node:10-alpine
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 
@@ -20,7 +20,7 @@ COPY --chown=node:node . .
 EXPOSE {{ . }}
 CMD [ "node", "app.js" ]`
 
-	java = `FROM openjdk
+	Java = `FROM openjdk
 
 COPY app.jar app.jar
 
@@ -29,9 +29,3 @@ ADD lib/ lib/
 
 ENTRYPOINT ["java","-jar","app.jar"]`
 )
-
-var TmplMap = map[string]string{
-	"go":   golang,
-	"java": java,
-	"js":   js,
-}
