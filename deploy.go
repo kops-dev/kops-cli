@@ -13,6 +13,12 @@ import (
 	"kops.dev/internal/templates"
 )
 
+const (
+	golang = "golang"
+	java   = "java"
+	js     = "js"
+)
+
 var (
 	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
 		"please download the key form https://kops.dev")
@@ -37,20 +43,7 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 	if fi != nil {
 		fmt.Println("Dockerfile present, using already created dockerfile")
 	} else {
-		// removing the cloud-specific logic from cli to hosted service
-		lang := ctx.Param("lang")
-		if lang == "" {
-			ctx.Logger.Errorf("%v", errLanguageNotProvided)
-
-			return nil, errLanguageNotProvided
-		}
-
-		port := ctx.Param("p")
-		if port == "" {
-			port = "8000"
-		}
-
-		if err := createDockerFile(ctx, lang, port); err != nil {
+		if err := createDockerFile(ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -61,16 +54,32 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 	return "Successful", nil
 }
 
-func createDockerFile(ctx *gofr.Context, lang, port string) error {
-	var content string
+func createDockerFile(ctx *gofr.Context) error {
+	var content, lang, port string
+
+	// removing the cloud-specific logic from cli to hosted service
+	lang = ctx.Param("lang")
+	if lang == "" {
+		lang = detect()
+		if lang == "" {
+			ctx.Logger.Errorf("%v", errLanguageNotProvided)
+
+			return errLanguageNotProvided
+		}
+	}
+
+	port = ctx.Param("p")
+	if port == "" {
+		port = "8000"
+	}
 
 	// get the template content for dockerFile based on the language
 	switch strings.ToLower(lang) {
-	case "go":
+	case golang:
 		content = templates.Golang
-	case "java":
+	case java:
 		content = templates.Java
-	case "js":
+	case js:
 		content = templates.Js
 	default:
 		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet,"+
@@ -105,4 +114,25 @@ func createDockerFile(ctx *gofr.Context, lang, port string) error {
 	}
 
 	return nil
+}
+
+func detect() string {
+	switch {
+	case checkFile("go.mod"):
+		return golang
+	case checkFile("package.json"):
+		return js
+	case checkFile("pom.xml") || checkFile("build.gradle"):
+		return java
+	}
+
+	return ""
+}
+
+func checkFile(fileName string) bool {
+	if _, err := os.Stat(fileName); err != nil {
+		return false
+	}
+
+	return true
 }
