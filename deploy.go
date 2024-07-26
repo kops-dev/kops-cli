@@ -66,6 +66,8 @@ func createDockerFile(ctx *gofr.Context) error {
 
 			return errLanguageNotProvided
 		}
+
+		fmt.Println("detected language is", lang)
 	}
 
 	port = ctx.Param("p")
