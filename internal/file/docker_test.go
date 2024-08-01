@@ -92,12 +92,12 @@ ENTRYPOINT ["java","-jar","app.jar"]`
 func testDockerFile(t *testing.T, expected string) {
 	t.Helper()
 
-	_, err := os.Stat("DockerFile")
+	_, err := os.Stat("Dockerfile")
 	if err != nil {
 		t.Errorf("Test failed, could not create DockerFile, error : %v", err)
 	}
 
-	file, err := os.Open("DockerFile")
+	file, err := os.Open("Dockerfile")
 	if err != nil {
 		t.Errorf("Test failed, error opening DockerFile, error : %v", err)
 	}
