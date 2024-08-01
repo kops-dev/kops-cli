@@ -23,8 +23,10 @@ func Build(lang string) error {
 		return buildGolang()
 	case js:
 		// TODO: necessary steps for javascript build
+		break
 	case java:
 		// TODO: necessary steps for building java projects
+		break
 	}
 
 	return nil

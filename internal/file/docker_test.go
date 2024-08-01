@@ -99,10 +99,13 @@ func testDockerFile(t *testing.T, expected string) {
 
 	file, err := os.Open("DockerFile")
 	if err != nil {
-		t.Errorf("Test failed, error reading DockerFile, error : %v", err)
+		t.Errorf("Test failed, error opening DockerFile, error : %v", err)
 	}
 
 	b, err := io.ReadAll(file)
+	if err != nil {
+		t.Errorf("Test failed, error reading DockerFile, error : %v", err)
+	}
 
 	assert.Equal(t, expected, string(b))
 }

@@ -55,8 +55,8 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 	if fi != nil {
 		fmt.Println("Dockerfile present, using already created dockerfile")
 	} else {
-		if err := file.CreateDockerFile(ctx, lang, port); err != nil {
-			return nil, err
+		if er := file.CreateDockerFile(ctx, lang, port); er != nil {
+			return nil, er
 		}
 	}
 
@@ -64,10 +64,11 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 	err = build.Build(lang)
 	if err != nil {
 		ctx.Logger.Errorf("error building for %v, error : %v", lang, err)
+
 		return nil, err
 	}
 
-	// TODO:Also need to figure out the contract for the API
+	// TODO: Need to figure out the contract for the API
 
 	return "Successful", nil
 }
