@@ -43,7 +43,7 @@ func Deploy(ctx *gofr.Context) (interface{}, error) {
 			return nil, errLanguageNotProvided
 		}
 
-		fmt.Println("detected language is", lang)
+		fmt.Println("Detected language is", lang)
 	}
 
 	port = ctx.Param("p")
