@@ -11,10 +11,7 @@ const (
 	js     = "js"
 )
 
-// Need to build based on the language!
-// Can we take the build command from the user?
-// In case of node do we need to do the build using npx or npm or yarn?
-// For every language support do we need to check if that language's compiler exists in the system?
+// TODO: For every language support do we need to check if that language's compiler exists in the system.
 // support - 1. golang(done)    2. Javascript      3. Java
 
 func Build(lang string) error {
