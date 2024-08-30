@@ -1,6 +1,8 @@
 package upload
 
 import (
+	"os"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -22,6 +24,7 @@ func New(credSvc client.CredentialFetcher) *service {
 
 func (s *service) UploadToArtifactory(ctx *gofr.Context, img *models.Image) (string, error) {
 	dir := getUniqueDir()
+	defer os.RemoveAll(dir)
 
 	err := img.Data.CreateLocalCopies(dir)
 	if err != nil {
@@ -68,7 +71,7 @@ func pushImage(ctx *gofr.Context, img *models.Image, cred *models.Credentials, p
 		return "", err
 	}
 
-	imgTar, err := tarball.ImageFromPath(path, nil)
+	imgTar, err := tarball.ImageFromPath(path+"/temp/"+img.Name+img.Tag+".tar", nil)
 	if err != nil {
 		return "", err
 	}

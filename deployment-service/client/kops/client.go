@@ -24,7 +24,7 @@ func New(svc gofrSvc.HTTP) *client {
 func (c *client) GetServiceCreds(ctx context.Context, serviceID string) (*models.Credentials, error) {
 	var data models.Response
 
-	api := fmt.Sprintf("/service/%s/service-credentials")
+	api := fmt.Sprintf("service/%s/service-credentials", serviceID)
 
 	resp, err := c.kopsSvc.Get(ctx, api, nil)
 	if err != nil {
@@ -53,7 +53,7 @@ type imageUpdate struct {
 var errService = errors.New("non OK status code received")
 
 func (c *client) UpdateImage(ctx context.Context, serviceId, imageURL string) error {
-	api := fmt.Sprintf("/service/%s/image", serviceId)
+	api := fmt.Sprintf("service/%s/image", serviceId)
 
 	payload, _ := json.Marshal(imageUpdate{Image: imageURL})
 
