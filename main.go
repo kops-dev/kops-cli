@@ -12,6 +12,8 @@ import (
 func main() {
 	app := gofr.NewCMD()
 
+	app.AddHTTPService("deployment-service", app.Config.Get("DEP_SERVICE_ADDR"))
+
 	dClient := depClient.New()
 	docker := dockerSvc.New()
 	depSvc := deploySvc.New(docker, dClient)
