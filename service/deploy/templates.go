@@ -1,4 +1,4 @@
-package templates
+package deploy
 
 const (
 	Golang = `FROM alpine:latest

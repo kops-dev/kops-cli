@@ -1,58 +1,20 @@
-package main
+package deploy
 
 import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
-
-	"kops.dev/internal/templates"
-)
-
-const (
-	golang = "golang"
-	java   = "java"
-	js     = "js"
 )
 
 var (
-	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
-		"please download the key form https://kops.dev")
 	errLanguageNotProvided = errors.New("unable to create DockerFile as project " +
 		"programming language not provided. Please Provide a programming language using -lang=<language>")
 	errLanguageNotSupported = errors.New("creating DockerFile for provided language is not supported yet")
 )
-
-func Deploy(ctx *gofr.Context) (interface{}, error) {
-	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
-	if keyFile == "" {
-		return nil, errDepKeyNotProvided
-	}
-
-	// letting this key file to be used later
-	_, err := os.ReadFile(filepath.Clean(keyFile))
-	if err != nil {
-		return nil, err
-	}
-
-	fi, _ := os.Stat("Dockerfile")
-	if fi != nil {
-		fmt.Println("Dockerfile present, using already created dockerfile")
-	} else {
-		if err := createDockerFile(ctx); err != nil {
-			return nil, err
-		}
-	}
-
-	// TODO: build and push the docker image to the Kops API
-	// Also need to figure out the contract for the API
-
-	return "Successful", nil
-}
 
 func createDockerFile(ctx *gofr.Context) error {
 	var content, lang, port string
@@ -78,11 +40,11 @@ func createDockerFile(ctx *gofr.Context) error {
 	// get the template content for dockerFile based on the language
 	switch strings.ToLower(lang) {
 	case golang:
-		content = templates.Golang
+		content = Golang
 	case java:
-		content = templates.Java
+		content = Java
 	case js:
-		content = templates.Js
+		content = Js
 	default:
 		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet,"+
 			" reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
