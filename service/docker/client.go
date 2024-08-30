@@ -18,7 +18,7 @@ type service struct {
 }
 
 func New() *service {
-	c, err := client.NewClientWithOpts(client.FromEnv)
+	c, err := client.NewClientWithOpts(client.WithHost("unix:///Users/raramuri/.colima/default/docker.sock"), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil
 	}

@@ -50,6 +50,7 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 		}
 	}
 
+	os.RemoveAll("temp")
 	// create the temp dir to save docker image that is built
 	err := ctx.File.Mkdir("temp", os.ModePerm)
 	if err != nil {
@@ -68,12 +69,12 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 		return err
 	}
 
-	err = s.depClient.DeployImage(ctx, img)
+	err = zipImage(img)
 	if err != nil {
 		return err
 	}
 
-	err = zipImage(img)
+	err = s.depClient.DeployImage(ctx, img)
 	if err != nil {
 		return err
 	}

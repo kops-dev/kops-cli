@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	imageZipName = "image.zip"
+	imageZipName = "temp/image.zip"
 )
 
 type client struct {
@@ -29,7 +29,7 @@ func (c *client) DeployImage(ctx *gofr.Context, img *models.Image) error {
 		return err
 	}
 
-	resp, err := depSvc.PostWithHeaders(ctx, "/deploy", nil, body, header)
+	resp, err := depSvc.PostWithHeaders(ctx, "deploy", nil, body, header)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func getForm(img *models.Image) ([]byte, map[string]string, error) {
 
 	defer writer.Close()
 
-	part, err := writer.CreateFormFile("file", imageZipName)
+	part, err := writer.CreateFormFile("image", imageZipName)
 	if err != nil {
 		return nil, nil, err
 	}

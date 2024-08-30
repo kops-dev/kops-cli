@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	imageZipName = "image.zip"
+	imageZipName = "temp/image.zip"
 )
 
 var (
