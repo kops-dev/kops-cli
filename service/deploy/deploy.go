@@ -1,7 +1,6 @@
 package deploy
 
 import (
-	"errors"
 	"fmt"
 	"gofr.dev/pkg/gofr"
 	"kops.dev/client"
@@ -16,10 +15,10 @@ const (
 	js     = "js"
 )
 
-var (
-	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
-		"please download the key form https://kops.dev")
-)
+//var (
+//	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
+//		"please download the key form https://kops.dev")
+//)
 
 type svc struct {
 	docker    service.DockerClient
@@ -51,7 +50,15 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 		}
 	}
 
-	err := s.docker.BuildImage(ctx, img)
+	// create the temp dir to save docker image that is built
+	err := ctx.File.Mkdir("temp", os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	defer os.RemoveAll("temp")
+
+	err = s.docker.BuildImage(ctx, img)
 	if err != nil {
 		return err
 	}
@@ -62,6 +69,11 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 	}
 
 	err = s.depClient.DeployImage(ctx, img)
+	if err != nil {
+		return err
+	}
+
+	err = zipImage(img)
 	if err != nil {
 		return err
 	}

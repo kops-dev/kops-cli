@@ -2,13 +2,15 @@ package docker
 
 import (
 	"encoding/json"
+	"io"
+	"os"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
 	"gofr.dev/pkg/gofr"
-	"io"
+
 	"kops.dev/models"
-	"os"
 )
 
 type service struct {
@@ -79,7 +81,7 @@ func (s *service) BuildImage(ctx *gofr.Context, img *models.Image) error {
 }
 
 func (s *service) SaveImage(ctx *gofr.Context, img *models.Image) error {
-	tarFileName := img.Name + ".tar"
+	tarFileName := "temp/" + img.Name + img.Tag + ".tar"
 
 	tarFile, err := os.Create(tarFileName)
 	if err != nil {

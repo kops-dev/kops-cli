@@ -1,13 +1,20 @@
 package deploy
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
+	"io"
+	"kops.dev/models"
 	"os"
 	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
+)
+
+const (
+	imageZipName = "image.zip"
 )
 
 var (
@@ -99,4 +106,37 @@ func checkFile(fileName string) bool {
 	}
 
 	return true
+}
+
+func zipImage(img *models.Image) error {
+	iamgeTarName := "temp/" + img.Name + img.Tag + ".tar"
+
+	tarReader, err := os.Open(iamgeTarName)
+	if err != nil {
+		return err
+	}
+	defer tarReader.Close()
+
+	// Create the zip file for writing
+	zipWriter, err := os.Create(imageZipName)
+	if err != nil {
+		return err
+	}
+	defer zipWriter.Close()
+
+	archive := zip.NewWriter(zipWriter)
+	defer archive.Close()
+
+	w, err := archive.Create(iamgeTarName)
+	if err != nil {
+		return err
+	}
+
+	// Copy the tar file content to the zip writer
+	_, err = io.Copy(w, tarReader)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
