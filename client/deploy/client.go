@@ -3,8 +3,10 @@ package deploy
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 
 	"gofr.dev/pkg/gofr"
@@ -15,6 +17,10 @@ import (
 
 const (
 	imageZipName = "temp/image.zip"
+)
+
+var (
+	errUpdatingImage = errors.New("unable to update the image for your service via kops.dev services")
 )
 
 type client struct {
@@ -38,6 +44,12 @@ func (*client) DeployImage(ctx *gofr.Context, img *models.Image) error {
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		ctx.Logger.Errorf("error communicating with the deployment service, status code returned - %d", resp.StatusCode)
+
+		return errUpdatingImage
+	}
 
 	return nil
 }
