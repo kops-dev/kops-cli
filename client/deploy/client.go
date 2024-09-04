@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"os"
@@ -62,11 +63,21 @@ func getForm(img *models.Image) ([]byte, map[string]string, error) {
 		return nil, nil, err
 	}
 
-	err = getFormField(writer, "name", img.Name)
-	err = getFormField(writer, "tag", img.Tag)
-	err = getFormField(writer, "region", img.Region)
-	err = getFormField(writer, "repository", img.Repository)
-	err = getFormField(writer, "serviceID", img.ServiceID)
+	err = addField(writer, "name", img.Name)
+	err = addField(writer, "tag", img.Tag)
+	err = addField(writer, "region", img.Region)
+	err = addField(writer, "repository", img.Repository)
+	err = addField(writer, "serviceID", img.ServiceID)
+	err = addField(writer, "repository", img.Repository)
+	err = addField(writer, "region", img.Region)
+	err = addField(writer, "loginServer", img.LoginServer)
+	err = addField(writer, "serviceName", img.ServiceName)
+	err = addField(writer, "accountID", img.AccountID)
+	err = addField(writer, "cloudProvider", img.CloudProvider)
+
+	creds, _ := writer.CreateFormField("serviceCreds")
+	b, _ := json.Marshal(img.ServiceCreds)
+	_, _ = creds.Write(b)
 
 	if err != nil {
 		return nil, nil, err
@@ -82,16 +93,10 @@ func getForm(img *models.Image) ([]byte, map[string]string, error) {
 	}, nil
 }
 
-func getFormField(writer *multipart.Writer, key, value string) error {
-	k, err := writer.CreateFormField(key)
-	if err != nil {
-		return err
+func addField(writer *multipart.Writer, key, value string) error {
+	if value == "" {
+		return nil
 	}
 
-	_, err = k.Write([]byte(value))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writer.WriteField(key, value)
 }

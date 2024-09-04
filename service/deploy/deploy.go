@@ -15,11 +15,6 @@ const (
 	js     = "js"
 )
 
-//var (
-//	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
-//		"please download the key form https://kops.dev")
-//)
-
 type svc struct {
 	docker    service.DockerClient
 	depClient client.ServiceDeployer
@@ -30,17 +25,6 @@ func New(docker service.DockerClient, depClient client.ServiceDeployer) *svc {
 }
 
 func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
-	// TODO: figure another approach with init or login commands
-	//keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
-	//if keyFile == "" {
-	//	return errDepKeyNotProvided
-	//}
-	//
-	//_, err := os.ReadFile(filepath.Clean(keyFile))
-	//if err != nil {
-	//	return err
-	//}
-
 	fi, _ := os.Stat("Dockerfile")
 	if fi != nil {
 		fmt.Println("Dockerfile present, using already created dockerfile")
