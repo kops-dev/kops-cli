@@ -7,6 +7,7 @@ import (
 	"io"
 	"kops.dev/models"
 	"os"
+	"os/exec"
 	"strings"
 	"text/template"
 
@@ -23,21 +24,8 @@ var (
 	errLanguageNotSupported = errors.New("creating DockerFile for provided language is not supported yet")
 )
 
-func createDockerFile(ctx *gofr.Context) error {
-	var content, lang, port string
-
-	// removing the cloud-specific logic from cli to hosted service
-	lang = ctx.Param("lang")
-	if lang == "" {
-		lang = detect()
-		if lang == "" {
-			ctx.Logger.Errorf("%v", errLanguageNotProvided)
-
-			return errLanguageNotProvided
-		}
-
-		fmt.Println("detected language is", lang)
-	}
+func createDockerFile(ctx *gofr.Context, lang string) error {
+	var content, port string
 
 	port = ctx.Param("p")
 	if port == "" {
@@ -137,6 +125,40 @@ func zipImage(img *models.Image) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// TODO: For every language support do we need to check if that language's compiler exists in the system.
+// support - 1. golang(done)    2. Javascript      3. Java
+
+// Build executes the build command for the project specific to language
+func Build(lang string) error {
+	switch lang {
+	case golang:
+		return buildGolang()
+	case js:
+		// TODO: necessary steps for javascript build
+		break
+	case java:
+		// TODO: necessary steps for building java projects
+		break
+	}
+
+	return nil
+}
+
+func buildGolang() error {
+	fmt.Println("Creating binary for the project")
+
+	output, err := exec.Command("sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .").CombinedOutput()
+	if err != nil {
+		fmt.Println("error occurred while creating binary!", string(output))
+
+		return err
+	}
+
+	fmt.Println("Binary created successfully")
 
 	return nil
 }
