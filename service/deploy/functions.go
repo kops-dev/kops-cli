@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kops.dev/models"
 	"os"
 	"os/exec"
 	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
+
+	"kops.dev/models"
 )
 
 const (
@@ -132,7 +133,7 @@ func zipImage(img *models.Image) error {
 // TODO: For every language support do we need to check if that language's compiler exists in the system.
 // support - 1. golang(done)    2. Javascript      3. Java
 
-// Build executes the build command for the project specific to language
+// Build executes the build command for the project specific to language.
 func Build(lang string) error {
 	switch lang {
 	case golang:

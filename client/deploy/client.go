@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"gofr.dev/pkg/gofr"
+
+	client2 "kops.dev/client"
 	"kops.dev/models"
 )
 
@@ -18,11 +20,11 @@ const (
 type client struct {
 }
 
-func New() *client {
+func New() client2.ServiceDeployer {
 	return &client{}
 }
 
-func (c *client) DeployImage(ctx *gofr.Context, img *models.Image) error {
+func (*client) DeployImage(ctx *gofr.Context, img *models.Image) error {
 	depSvc := ctx.GetHTTPService("deployment-service")
 
 	body, header, err := getForm(img)
@@ -40,7 +42,7 @@ func (c *client) DeployImage(ctx *gofr.Context, img *models.Image) error {
 	return nil
 }
 
-func getForm(img *models.Image) ([]byte, map[string]string, error) {
+func getForm(img *models.Image) (bodyBytes []byte, headers map[string]string, err error) {
 	file, err := os.Open(imageZipName)
 	if err != nil {
 		return nil, nil, err

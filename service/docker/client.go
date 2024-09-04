@@ -11,14 +11,19 @@ import (
 	"gofr.dev/pkg/gofr"
 
 	"kops.dev/models"
+	service2 "kops.dev/service"
 )
 
 type service struct {
 	docker *client.Client
 }
 
-func New() *service {
-	c, err := client.NewClientWithOpts(client.WithHost("unix:///Users/raramuri/.colima/default/docker.sock"), client.WithAPIVersionNegotiation())
+func New() service2.DockerClient {
+	c, err := client.NewClientWithOpts(
+		client.WithHost("unix:///Users/raramuri/.colima/default/docker.sock"),
+		client.WithAPIVersionNegotiation(),
+	)
+
 	if err != nil {
 		return nil
 	}
@@ -58,6 +63,7 @@ func (s *service) BuildImage(ctx *gofr.Context, img *models.Image) error {
 
 	// Decode and print formatted output
 	decoder := json.NewDecoder(imageBuildResponse.Body)
+
 	for {
 		var output buildOutput
 		if er := decoder.Decode(&output); er == io.EOF {
@@ -69,9 +75,11 @@ func (s *service) BuildImage(ctx *gofr.Context, img *models.Image) error {
 		if output.Stream != "" && output.Stream != `\n'` {
 			ctx.Debug(output.Stream)
 		}
+
 		if output.Status != "" {
 			ctx.Info(output.Status)
 		}
+
 		if output.Error != "" {
 			ctx.Debug("Error: %s\n", output.Error)
 		}

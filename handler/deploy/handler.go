@@ -3,11 +3,12 @@ package deploy
 import (
 	"encoding/json"
 	"errors"
-	"gofr.dev/pkg/gofr"
-	"kops.dev/models"
 	"os"
 	"path/filepath"
 
+	"gofr.dev/pkg/gofr"
+
+	"kops.dev/models"
 	"kops.dev/service"
 )
 
@@ -16,15 +17,15 @@ var (
 		"please download the key form https://kops.dev and navigating to your service deployment guide lines for CLI deployment")
 )
 
-type handler struct {
+type Handler struct {
 	svc service.Deployer
 }
 
-func New(svc service.Deployer) *handler {
-	return &handler{svc: svc}
+func New(svc service.Deployer) *Handler {
+	return &Handler{svc: svc}
 }
 
-func (h *handler) Deploy(ctx *gofr.Context) (any, error) {
+func (h *Handler) Deploy(ctx *gofr.Context) (any, error) {
 	var img models.Image
 
 	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
