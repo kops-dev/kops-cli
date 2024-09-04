@@ -15,6 +15,9 @@ import (
 var (
 	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
 		"please download the key form https://kops.dev and navigating to your service deployment guide lines for CLI deployment")
+	errIncorrectDepKey = errors.New("unable to validate the deployment key, please make sure the key contents of key are correct" +
+		"Please download the key form https://kops.dev and navigating to your service deployment guide lines for CLI deployment")
+	errDeploymentFailed = errors.New("some unexpected error occurred while deploying your service using kops.dev")
 )
 
 type Handler struct {
@@ -35,12 +38,16 @@ func (h *Handler) Deploy(ctx *gofr.Context) (any, error) {
 
 	f, err := os.ReadFile(filepath.Clean(keyFile))
 	if err != nil {
+		ctx.Logger.Errorf("error reading the deployment key")
+
 		return nil, err
 	}
 
 	err = json.Unmarshal(f, &img)
 	if err != nil {
-		return nil, err
+		ctx.Logger.Errorf("error while binding the image details, err : %v", err)
+
+		return nil, errIncorrectDepKey
 	}
 
 	img.Name = ctx.Param("name")
@@ -48,7 +55,9 @@ func (h *Handler) Deploy(ctx *gofr.Context) (any, error) {
 
 	err = h.svc.Deploy(ctx, &img)
 	if err != nil {
-		return nil, err
+		ctx.Logger.Errorf("error updating the user service, err : %v", err)
+
+		return nil, errDeploymentFailed
 	}
 
 	return "Successfully deployed " + img.Name, nil

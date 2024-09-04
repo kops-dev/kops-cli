@@ -83,6 +83,7 @@ func buildProject(ctx *gofr.Context) error {
 		err := Build(lang)
 		if err != nil {
 			ctx.Logger.Errorf("error while building the project binary, please check the project code!")
+
 			return err
 		}
 
