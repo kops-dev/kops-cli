@@ -1,74 +1,32 @@
-package main
+package deploy
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
+	"io"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
 
-	"kops.dev/internal/templates"
+	"kops.dev/models"
 )
 
 const (
-	golang = "golang"
-	java   = "java"
-	js     = "js"
+	imageZipName = "temp/image.zip"
 )
 
 var (
-	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
-		"please download the key form https://kops.dev")
 	errLanguageNotProvided = errors.New("unable to create DockerFile as project " +
 		"programming language not provided. Please Provide a programming language using -lang=<language>")
 	errLanguageNotSupported = errors.New("creating DockerFile for provided language is not supported yet")
 )
 
-func Deploy(ctx *gofr.Context) (interface{}, error) {
-	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
-	if keyFile == "" {
-		return nil, errDepKeyNotProvided
-	}
-
-	// letting this key file to be used later
-	_, err := os.ReadFile(filepath.Clean(keyFile))
-	if err != nil {
-		return nil, err
-	}
-
-	fi, _ := os.Stat("Dockerfile")
-	if fi != nil {
-		fmt.Println("Dockerfile present, using already created dockerfile")
-	} else {
-		if err := createDockerFile(ctx); err != nil {
-			return nil, err
-		}
-	}
-
-	// TODO: build and push the docker image to the Kops API
-	// Also need to figure out the contract for the API
-
-	return "Successful", nil
-}
-
-func createDockerFile(ctx *gofr.Context) error {
-	var content, lang, port string
-
-	// removing the cloud-specific logic from cli to hosted service
-	lang = ctx.Param("lang")
-	if lang == "" {
-		lang = detect()
-		if lang == "" {
-			ctx.Logger.Errorf("%v", errLanguageNotProvided)
-
-			return errLanguageNotProvided
-		}
-
-		fmt.Println("detected language is", lang)
-	}
+func createDockerFile(ctx *gofr.Context, lang string) error {
+	var content, port string
 
 	port = ctx.Param("p")
 	if port == "" {
@@ -78,11 +36,11 @@ func createDockerFile(ctx *gofr.Context) error {
 	// get the template content for dockerFile based on the language
 	switch strings.ToLower(lang) {
 	case golang:
-		content = templates.Golang
+		content = Golang
 	case java:
-		content = templates.Java
+		content = Java
 	case js:
-		content = templates.Js
+		content = Js
 	default:
 		ctx.Logger.Errorf("creating DockerFile for %s is not supported yet,"+
 			" reach us at https://github.com/kops-dev/kops-cli/issues to know more", lang)
@@ -137,4 +95,71 @@ func checkFile(fileName string) bool {
 	}
 
 	return true
+}
+
+func zipImage(img *models.Image) error {
+	iamgeTarName := "temp/" + img.Name + img.Tag + ".tar"
+
+	tarReader, err := os.Open(iamgeTarName)
+	if err != nil {
+		return err
+	}
+	defer tarReader.Close()
+
+	// Create the zip file for writing
+	zipWriter, err := os.Create(imageZipName)
+	if err != nil {
+		return err
+	}
+	defer zipWriter.Close()
+
+	archive := zip.NewWriter(zipWriter)
+	defer archive.Close()
+
+	w, err := archive.Create(iamgeTarName)
+	if err != nil {
+		return err
+	}
+
+	// Copy the tar file content to the zip writer
+	_, err = io.Copy(w, tarReader)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: For every language support do we need to check if that language's compiler exists in the system.
+// support - 1. golang(done)    2. Javascript      3. Java
+
+// Build executes the build command for the project specific to language.
+func Build(lang string) error {
+	switch lang {
+	case golang:
+		return buildGolang()
+	case js:
+		// TODO: necessary steps for javascript build
+		break
+	case java:
+		// TODO: necessary steps for building java projects
+		break
+	}
+
+	return nil
+}
+
+func buildGolang() error {
+	fmt.Println("Creating binary for the project")
+
+	output, err := exec.Command("sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .").CombinedOutput()
+	if err != nil {
+		fmt.Println("error occurred while creating binary!", string(output))
+
+		return err
+	}
+
+	fmt.Println("Binary created successfully")
+
+	return nil
 }
