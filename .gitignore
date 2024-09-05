@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+.DS_Store
 
 # Test binary, built with `go test -c`
 *.test
@@ -15,6 +16,8 @@ coverage.txt
 
 # Dependency directories (remove the comment below to include it)
 vendor/
+
+test
 
 # IDE cache and settings
 .idea
