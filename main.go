@@ -12,7 +12,7 @@ import (
 func main() {
 	app := gofr.NewCMD()
 
-	app.AddHTTPService("deployment-service", "https://api.kops.dev")
+	app.AddHTTPService("deployment-service", "https://api.stage.kops.dev")
 
 	dClient := depClient.New()
 	docker := dockerSvc.New()
