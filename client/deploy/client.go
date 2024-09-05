@@ -11,7 +11,7 @@ import (
 
 	"gofr.dev/pkg/gofr"
 
-	client2 "kops.dev/client"
+	kopsClient "kops.dev/client"
 	"kops.dev/models"
 )
 
@@ -26,7 +26,7 @@ var (
 type client struct {
 }
 
-func New() client2.ServiceDeployer {
+func New() kopsClient.ServiceDeployer {
 	return &client{}
 }
 
