@@ -1,4 +1,4 @@
-module kops.dev
+module zop.dev
 
 go 1.22
 
