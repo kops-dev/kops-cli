@@ -5,7 +5,7 @@ cloud using zop.dev - simplified devops.
 
 To install the cli app run the following command
 ```
-go install zop.dev@latest //to get the latest release for kops cli
+go install zop.dev@latest //to get the latest release for zop.dev cli
 ```
 
 or clone the repo and build binary

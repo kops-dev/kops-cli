@@ -47,7 +47,7 @@ func createDockerFile(ctx *gofr.Context, lang string) error {
 
 		fmt.Printf("creating DockerFile for %s is not supported yet, "+
 			"reach us at https://github.com/kops-dev/kops-cli/issues to know more\n", lang)
-		fmt.Println("you can create your own DockerFile and run the kops-cli again.")
+		fmt.Println("you can create your own DockerFile and run the zop.dev cli again.")
 
 		return errLanguageNotSupported
 	}

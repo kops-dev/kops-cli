@@ -11,14 +11,14 @@ import (
 	"gofr.dev/pkg/gofr"
 
 	"zop.dev/models"
-	kopsSvc "zop.dev/service"
+	zopSvc "zop.dev/service"
 )
 
 type service struct {
 	docker *client.Client
 }
 
-func New() kopsSvc.DockerClient {
+func New() zopSvc.DockerClient {
 	c, err := client.NewClientWithOpts(
 		client.WithHost("unix:///Users/raramuri/.colima/default/docker.sock"),
 		client.WithAPIVersionNegotiation(),

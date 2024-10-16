@@ -20,8 +20,8 @@ func main() {
 	depHandler := depHndler.New(depSvc)
 
 	app.SubCommand("version", func(_ *gofr.Context) (interface{}, error) {
-		return "kops cli version " + version, nil
-	}, gofr.AddDescription("displays the installed kops version"))
+		return "zop.dev cli version " + version, nil
+	}, gofr.AddDescription("displays the installed zop.dev cli version"))
 
 	app.SubCommand("deploy", depHandler.Deploy,
 		gofr.AddDescription("builds and deploy code using a single command"))
