@@ -7,9 +7,9 @@ import (
 	"gofr.dev/pkg/gofr"
 	"golang.org/x/sync/errgroup"
 
-	"kops.dev/client"
-	"kops.dev/models"
-	"kops.dev/service"
+	"zop.dev/client"
+	"zop.dev/models"
+	"zop.dev/service"
 )
 
 const (

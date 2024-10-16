@@ -8,16 +8,16 @@ import (
 
 	"gofr.dev/pkg/gofr"
 
-	"kops.dev/models"
-	"kops.dev/service"
+	"zop.dev/models"
+	"zop.dev/service"
 )
 
 var (
-	errDepKeyNotProvided = errors.New("KOPS_DEPLOYMENT_KEY not provided, " +
-		"please download the key form https://kops.dev and navigating to your service deployment guide lines for CLI deployment")
+	errDepKeyNotProvided = errors.New("ZOP_DEPLOYMENT_KEY not provided, " +
+		"please download the key from https://zop.dev and navigating to your service deployment guide lines for CLI deployment")
 	errIncorrectDepKey = errors.New("unable to validate the deployment key, please make sure the key contents of key are correct" +
-		"Please download the key form https://kops.dev and navigating to your service deployment guide lines for CLI deployment")
-	errDeploymentFailed = errors.New("some unexpected error occurred while deploying your service using kops.dev")
+		"Please download the key from https://zop.dev and navigating to your service deployment guide lines for CLI deployment")
+	errDeploymentFailed = errors.New("some unexpected error occurred while deploying your service using zop.dev")
 )
 
 type Handler struct {
@@ -31,7 +31,7 @@ func New(svc service.Deployer) *Handler {
 func (h *Handler) Deploy(ctx *gofr.Context) (any, error) {
 	var img models.Image
 
-	keyFile := os.Getenv("KOPS_DEPLOYMENT_KEY")
+	keyFile := os.Getenv("ZOP_DEPLOYMENT_KEY")
 	if keyFile == "" {
 		return nil, errDepKeyNotProvided
 	}
