@@ -10,8 +10,8 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"gofr.dev/pkg/gofr"
 
-	"kops.dev/models"
-	kopsSvc "kops.dev/service"
+	"zop.dev/models"
+	kopsSvc "zop.dev/service"
 )
 
 type service struct {

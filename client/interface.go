@@ -2,7 +2,7 @@ package client
 
 import (
 	"gofr.dev/pkg/gofr"
-	"kops.dev/models"
+	"zop.dev/models"
 )
 
 type ServiceDeployer interface {

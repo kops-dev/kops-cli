@@ -12,7 +12,7 @@ import (
 
 	"gofr.dev/pkg/gofr"
 
-	"kops.dev/models"
+	"zop.dev/models"
 )
 
 const (

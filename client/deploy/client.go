@@ -11,8 +11,8 @@ import (
 
 	"gofr.dev/pkg/gofr"
 
-	kopsClient "kops.dev/client"
-	"kops.dev/models"
+	zopClient "zop.dev/client"
+	"zop.dev/models"
 )
 
 const (
@@ -20,13 +20,13 @@ const (
 )
 
 var (
-	errUpdatingImage = errors.New("unable to update the image for your service via kops.dev services")
+	errUpdatingImage = errors.New("unable to update the image for your service via zop.dev services")
 )
 
 type client struct {
 }
 
-func New() kopsClient.ServiceDeployer {
+func New() zopClient.ServiceDeployer {
 	return &client{}
 }
 
