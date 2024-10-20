@@ -6,5 +6,5 @@ import (
 )
 
 type ServiceDeployer interface {
-	DeployImage(ctx *gofr.Context, img *models.Image) error
+	Deploy(ctx *gofr.Context, img *models.Image, zipFile string) error
 }

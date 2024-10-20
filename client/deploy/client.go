@@ -30,10 +30,10 @@ func New() zopClient.ServiceDeployer {
 	return &client{}
 }
 
-func (*client) DeployImage(ctx *gofr.Context, img *models.Image) error {
+func (*client) Deploy(ctx *gofr.Context, img *models.Image, zipFile string) error {
 	depSvc := ctx.GetHTTPService("deployment-service")
 
-	body, header, err := getForm(img)
+	body, header, err := getForm(img, zipFile)
 	if err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func (*client) DeployImage(ctx *gofr.Context, img *models.Image) error {
 	return nil
 }
 
-func getForm(img *models.Image) (bodyBytes []byte, headers map[string]string, err error) {
-	file, err := os.Open(imageZipName)
+func getForm(img *models.Image, zipFile string) (bodyBytes []byte, headers map[string]string, err error) {
+	file, err := os.Open(zipFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -67,7 +67,7 @@ func getForm(img *models.Image) (bodyBytes []byte, headers map[string]string, er
 
 	defer writer.Close()
 
-	part, err := writer.CreateFormFile("image", imageZipName)
+	part, err := writer.CreateFormFile("image", zipFile)
 	if err != nil {
 		return nil, nil, err
 	}

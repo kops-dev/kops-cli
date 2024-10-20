@@ -43,12 +43,12 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 
 	defer os.RemoveAll(tempDirPath)
 
-	err = zipProject(img, tempDirPath)
+	zipFile, err := zipProject(img, tempDirPath)
 	if err != nil {
 		return err
 	}
 
-	err = s.depClient.DeployImage(ctx, img)
+	err = s.depClient.Deploy(ctx, img, zipFile)
 	if err != nil {
 		return err
 	}
@@ -71,16 +71,16 @@ func buildProject(ctx *gofr.Context) error {
 
 	group := errgroup.Group{}
 
-	group.Go(func() error {
-		err := Build(lang)
-		if err != nil {
-			ctx.Logger.Errorf("error while building the project binary, please check the project code!")
-
-			return err
-		}
-
-		return nil
-	})
+	//group.Go(func() error {
+	//	err := Build(lang)
+	//	if err != nil {
+	//		ctx.Logger.Errorf("error while building the project binary, please check the project code!")
+	//
+	//		return err
+	//	}
+	//
+	//	return nil
+	//})
 
 	fi, _ := os.Stat("Dockerfile")
 	if fi != nil {
