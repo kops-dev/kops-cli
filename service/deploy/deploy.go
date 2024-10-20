@@ -3,6 +3,7 @@ package deploy
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"gofr.dev/pkg/gofr"
 	"golang.org/x/sync/errgroup"
@@ -33,25 +34,16 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 		return err
 	}
 
-	// create the temp dir to save docker image that is built
-	err = ctx.File.Mkdir("temp", os.ModePerm)
+	tempDirPath := path.Join(os.TempDir(), "zop-cli")
+
+	err = ctx.File.Mkdir(tempDirPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	defer os.RemoveAll("temp")
+	defer os.RemoveAll(tempDirPath)
 
-	err = s.docker.BuildImage(ctx, img)
-	if err != nil {
-		return err
-	}
-
-	err = s.docker.SaveImage(ctx, img)
-	if err != nil {
-		return err
-	}
-
-	err = zipImage(img)
+	err = zipProject(img, tempDirPath)
 	if err != nil {
 		return err
 	}
