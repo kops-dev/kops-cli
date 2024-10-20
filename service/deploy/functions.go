@@ -99,17 +99,17 @@ func checkFile(fileName string) bool {
 	return true
 }
 
-func zipProject(img *models.Image, zipDir string) error {
+func zipProject(img *models.Image, zipDir string) (string, error) {
 	curDir, err := os.Getwd()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	zipFile := path.Join(zipDir, img.Name+".zip")
+	zipFile := path.Join(zipDir, fmt.Sprintf("%s-%s.zip", img.Name, img.Tag))
 
 	outFile, err := os.Create(zipFile)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer outFile.Close()
 
@@ -153,7 +153,7 @@ func zipProject(img *models.Image, zipDir string) error {
 		return err
 	})
 
-	return err
+	return zipFile, err
 }
 
 // TODO: For every language support do we need to check if that language's compiler exists in the system.
