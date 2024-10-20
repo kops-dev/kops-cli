@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -97,37 +99,61 @@ func checkFile(fileName string) bool {
 	return true
 }
 
-func zipImage(img *models.Image) error {
-	iamgeTarName := "temp/" + img.Name + img.Tag + ".tar"
-
-	tarReader, err := os.Open(iamgeTarName)
+func zipProject(img *models.Image, zipDir string) error {
+	curDir, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	defer tarReader.Close()
 
-	// Create the zip file for writing
-	zipWriter, err := os.Create(imageZipName)
+	zipFile := path.Join(zipDir, img.Name+".zip")
+
+	outFile, err := os.Create(zipFile)
 	if err != nil {
 		return err
 	}
+	defer outFile.Close()
+
+	zipWriter := zip.NewWriter(outFile)
 	defer zipWriter.Close()
 
-	archive := zip.NewWriter(zipWriter)
-	defer archive.Close()
+	err = filepath.Walk(curDir, func(file string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	w, err := archive.Create(iamgeTarName)
-	if err != nil {
+		if file == zipFile {
+			return nil
+		}
+
+		relPath, err := filepath.Rel(filepath.Dir(curDir), file)
+		if err != nil {
+			return err
+		}
+
+		if fi.IsDir() {
+			_, err := zipWriter.Create(relPath + "/")
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+		fileInZip, err := zipWriter.Create(relPath)
+		if err != nil {
+			return err
+		}
+
+		fileToZip, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer fileToZip.Close()
+
+		_, err = io.Copy(fileInZip, fileToZip)
 		return err
-	}
+	})
 
-	// Copy the tar file content to the zip writer
-	_, err = io.Copy(w, tarReader)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // TODO: For every language support do we need to check if that language's compiler exists in the system.
