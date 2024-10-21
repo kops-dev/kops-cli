@@ -71,17 +71,6 @@ func buildProject(ctx *gofr.Context) error {
 
 	group := errgroup.Group{}
 
-	//group.Go(func() error {
-	//	err := Build(lang)
-	//	if err != nil {
-	//		ctx.Logger.Errorf("error while building the project binary, please check the project code!")
-	//
-	//		return err
-	//	}
-	//
-	//	return nil
-	//})
-
 	fi, _ := os.Stat("Dockerfile")
 	if fi != nil {
 		fmt.Println("Dockerfile present, using already created dockerfile")
