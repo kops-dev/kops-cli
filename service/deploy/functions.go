@@ -17,10 +17,6 @@ import (
 	"zop.dev/models"
 )
 
-const (
-	imageZipName = "temp/image.zip"
-)
-
 var (
 	errLanguageNotProvided = errors.New("unable to create DockerFile as project " +
 		"programming language not provided. Please Provide a programming language using -lang=<language>")
@@ -131,10 +127,11 @@ func zipProject(img *models.Image, zipDir string) (string, error) {
 		}
 
 		if fi.IsDir() {
-			_, err := zipWriter.Create(relPath + "/")
+			_, err = zipWriter.Create(relPath + "/")
 			if err != nil {
 				return err
 			}
+
 			return nil
 		}
 
@@ -150,6 +147,7 @@ func zipProject(img *models.Image, zipDir string) (string, error) {
 		defer fileToZip.Close()
 
 		_, err = io.Copy(fileInZip, fileToZip)
+
 		return err
 	})
 

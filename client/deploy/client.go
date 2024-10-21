@@ -15,10 +15,6 @@ import (
 	"zop.dev/models"
 )
 
-const (
-	imageZipName = "temp/image.zip"
-)
-
 var (
 	errUpdatingImage = errors.New("unable to update the image for your service via zop.dev services")
 )
