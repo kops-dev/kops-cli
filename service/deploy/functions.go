@@ -100,7 +100,9 @@ func zipProject(img *models.Image, zipDir string) (string, error) {
 		return "", err
 	}
 
-	zipFile := path.Join(zipDir, fmt.Sprintf("%s-%s.zip", img.Name, img.Tag))
+	img.ModuleName = filepath.Base(curDir)
+
+	zipFile := path.Join(zipDir, fmt.Sprintf("%s.zip", img.ModuleName))
 
 	outFile, err := os.Create(zipFile)
 	if err != nil {

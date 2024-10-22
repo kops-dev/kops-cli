@@ -76,6 +76,7 @@ func getForm(img *models.Image, zipFile string) (bodyBytes []byte, headers map[s
 	err = addField(writer, "name", img.Name)
 	err = addField(writer, "tag", img.Tag)
 	err = addField(writer, "lang", img.Lang)
+	err = addField(writer, "moduleName", img.ModuleName)
 	err = addField(writer, "region", img.Region)
 	err = addField(writer, "repository", img.Repository)
 	err = addField(writer, "serviceID", img.ServiceID)

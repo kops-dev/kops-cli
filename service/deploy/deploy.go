@@ -20,12 +20,11 @@ const (
 )
 
 type svc struct {
-	docker    service.DockerClient
 	depClient client.ServiceDeployer
 }
 
-func New(docker service.DockerClient, depClient client.ServiceDeployer) service.Deployer {
-	return &svc{docker: docker, depClient: depClient}
+func New(depClient client.ServiceDeployer) service.Deployer {
+	return &svc{depClient: depClient}
 }
 
 func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
