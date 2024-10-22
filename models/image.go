@@ -13,7 +13,7 @@ type Image struct {
 
 type ServiceDetails struct {
 	ServiceID     string `form:"serviceID" json:"serviceID"`
-	ServiceCreds  any    `form:"serviceCreds" json:"serviceCreds"`
+	ServiceCreds  any    `form:"serviceCredentials" json:"serviceCredentials"`
 	Repository    string `form:"repository" json:"repository"`
 	Region        string `form:"region" json:"region"`
 	LoginServer   string `form:"loginServer" json:"loginServer"`
