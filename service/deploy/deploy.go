@@ -29,7 +29,7 @@ func New(docker service.DockerClient, depClient client.ServiceDeployer) service.
 }
 
 func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
-	err := buildProject(ctx)
+	lang, err := buildProject(ctx)
 	if err != nil {
 		return err
 	}
@@ -48,6 +48,8 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 		return err
 	}
 
+	img.Lang = lang
+
 	err = s.depClient.Deploy(ctx, img, zipFile)
 	if err != nil {
 		return err
@@ -56,14 +58,14 @@ func (s *svc) Deploy(ctx *gofr.Context, img *models.Image) error {
 	return nil
 }
 
-func buildProject(ctx *gofr.Context) error {
+func buildProject(ctx *gofr.Context) (string, error) {
 	lang := ctx.Param("lang")
 	if lang == "" {
 		lang = detect()
 		if lang == "" {
 			ctx.Logger.Errorf("%v", errLanguageNotProvided)
 
-			return errLanguageNotProvided
+			return "", errLanguageNotProvided
 		}
 
 		fmt.Println("detected language is", lang)
@@ -80,5 +82,5 @@ func buildProject(ctx *gofr.Context) error {
 		})
 	}
 
-	return group.Wait()
+	return lang, group.Wait()
 }
