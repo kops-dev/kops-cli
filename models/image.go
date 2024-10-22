@@ -6,6 +6,7 @@ type Image struct {
 	Data file.Zip `file:"image"`
 	Name string   `form:"name" json:"name"`
 	Tag  string   `form:"tag" json:"tag"`
+	Lang string   `form:"lang" json:"lang"`
 	ServiceDetails
 }
 
