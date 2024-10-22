@@ -6,17 +6,14 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
+	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
 	"gofr.dev/pkg/gofr"
 
 	"zop.dev/models"
-)
-
-const (
-	imageZipName = "temp/image.zip"
 )
 
 var (
@@ -97,69 +94,63 @@ func checkFile(fileName string) bool {
 	return true
 }
 
-func zipImage(img *models.Image) error {
-	iamgeTarName := "temp/" + img.Name + img.Tag + ".tar"
-
-	tarReader, err := os.Open(iamgeTarName)
+func zipProject(img *models.Image, zipDir string) (string, error) {
+	curDir, err := os.Getwd()
 	if err != nil {
-		return err
+		return "", err
 	}
-	defer tarReader.Close()
 
-	// Create the zip file for writing
-	zipWriter, err := os.Create(imageZipName)
+	img.ModuleName = filepath.Base(curDir)
+
+	zipFile := path.Join(zipDir, fmt.Sprintf("%s.zip", img.ModuleName))
+
+	outFile, err := os.Create(zipFile)
 	if err != nil {
-		return err
+		return "", err
 	}
+	defer outFile.Close()
+
+	zipWriter := zip.NewWriter(outFile)
 	defer zipWriter.Close()
 
-	archive := zip.NewWriter(zipWriter)
-	defer archive.Close()
+	err = filepath.Walk(curDir, func(file string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	w, err := archive.Create(iamgeTarName)
-	if err != nil {
-		return err
-	}
+		if file == zipFile {
+			return nil
+		}
 
-	// Copy the tar file content to the zip writer
-	_, err = io.Copy(w, tarReader)
-	if err != nil {
-		return err
-	}
+		relPath, err := filepath.Rel(filepath.Dir(curDir), file)
+		if err != nil {
+			return err
+		}
 
-	return nil
-}
+		if fi.IsDir() {
+			_, err = zipWriter.Create(relPath + "/")
+			if err != nil {
+				return err
+			}
 
-// TODO: For every language support do we need to check if that language's compiler exists in the system.
-// support - 1. golang(done)    2. Javascript      3. Java
+			return nil
+		}
 
-// Build executes the build command for the project specific to language.
-func Build(lang string) error {
-	switch lang {
-	case golang:
-		return buildGolang()
-	case js:
-		// TODO: necessary steps for javascript build
-		break
-	case java:
-		// TODO: necessary steps for building java projects
-		break
-	}
+		fileInZip, err := zipWriter.Create(relPath)
+		if err != nil {
+			return err
+		}
 
-	return nil
-}
+		fileToZip, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer fileToZip.Close()
 
-func buildGolang() error {
-	fmt.Println("Creating binary for the project")
-
-	output, err := exec.Command("sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .").CombinedOutput()
-	if err != nil {
-		fmt.Println("error occurred while creating binary!", string(output))
+		_, err = io.Copy(fileInZip, fileToZip)
 
 		return err
-	}
+	})
 
-	fmt.Println("Binary created successfully")
-
-	return nil
+	return zipFile, err
 }

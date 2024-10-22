@@ -6,7 +6,6 @@ import (
 	depClient "zop.dev/client/deploy"
 	depHndler "zop.dev/handler/deploy"
 	deploySvc "zop.dev/service/deploy"
-	dockerSvc "zop.dev/service/docker"
 )
 
 func main() {
@@ -15,8 +14,7 @@ func main() {
 	app.AddHTTPService("deployment-service", "https://api.stage.kops.dev")
 
 	dClient := depClient.New()
-	docker := dockerSvc.New()
-	depSvc := deploySvc.New(docker, dClient)
+	depSvc := deploySvc.New(dClient)
 	depHandler := depHndler.New(depSvc)
 
 	app.SubCommand("version", func(_ *gofr.Context) (interface{}, error) {
