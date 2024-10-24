@@ -11,7 +11,13 @@ import (
 func main() {
 	app := gofr.NewCMD()
 
-	app.AddHTTPService("deployment-service", "https://api.stage.kops.dev")
+	zopAPI := "http://localhost:9005"
+
+	if app.Config.Get("DEP_ENV") == "PRODUCTION" {
+		zopAPI = "https://api.kops.dev"
+	}
+
+	app.AddHTTPService("deployment-service", zopAPI)
 
 	dClient := depClient.New()
 	depSvc := deploySvc.New(dClient)

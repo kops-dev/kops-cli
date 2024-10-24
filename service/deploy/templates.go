@@ -1,11 +1,24 @@
 package deploy
 
 const (
-	Golang = `FROM alpine:latest
-RUN apk add --no-cache tzdata ca-certificates
-COPY main ./main
-RUN chmod +x /main
-EXPOSE {{ . }}
+	Golang = `FROM golang:1.22 AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod tidy
+
+RUN GOOS=linux GOARCH=amd64 go build -o main
+
+FROM alpine:3.15
+
+COPY --from=builder /app /
+
+RUN chmod 777 /main
+
+EXPOSE 9000
+
 CMD ["/main"]`
 
 	Js = `FROM node:10-alpine
